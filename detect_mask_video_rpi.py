@@ -5,19 +5,46 @@
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.models import load_model
-from imutils.video import VideoStream
 import numpy as np
 import argparse
 import imutils
 import time
 import cv2
 import os
-# import picamera
+from picamera2 import Picamera2
+
+# construct the argument parser and parse the arguments
+ap = argparse.ArgumentParser()
+ap.add_argument("-f", "--face", type=str,
+	default="face_detector",
+	help="path to face detector model directory")
+ap.add_argument("-m", "--model", type=str,
+	default="mask_detector.model",
+	help="path to trained face mask detector model")
+ap.add_argument("-c", "--confidence", type=float, default=0.5,
+	help="minimum probability to filter weak detections")
+args = vars(ap.parse_args())
+
+# load our serialized face detector model from disk
+print("[INFO] loading face detector model...")
+prototxtPath = os.path.sep.join([args["face"], "deploy.prototxt"])
+weightsPath = os.path.sep.join([args["face"],
+	"res10_300x300_ssd_iter_140000.caffemodel"])
+faceNet = cv2.dnn.readNet(prototxtPath, weightsPath)
+
+# load the face mask detector model from disk
+print("[INFO] loading face mask detector model...")
+maskNet = load_model(args["model"])
 
 def detect_and_predict_mask(frame, faceNet, maskNet):
 	# grab the dimensions of the frame and then construct a blob
 	# from it
+	if frame is None:
+		print("No frame received")
+
+	# grab the frame dimensions and convert it to a blob
 	(h, w) = frame.shape[:2]
+
 	blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300),
 		(104.0, 177.0, 123.0))
 
@@ -75,40 +102,26 @@ def detect_and_predict_mask(frame, faceNet, maskNet):
 	# locations
 	return (locs, preds)
 
-# construct the argument parser and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-f", "--face", type=str,
-	default="face_detector",
-	help="path to face detector model directory")
-ap.add_argument("-m", "--model", type=str,
-	default="mask_detector.model",
-	help="path to trained face mask detector model")
-ap.add_argument("-c", "--confidence", type=float, default=0.5,
-	help="minimum probability to filter weak detections")
-args = vars(ap.parse_args())
-
-# load our serialized face detector model from disk
-print("[INFO] loading face detector model...")
-prototxtPath = os.path.sep.join([args["face"], "deploy.prototxt"])
-weightsPath = os.path.sep.join([args["face"],
-	"res10_300x300_ssd_iter_140000.caffemodel"])
-faceNet = cv2.dnn.readNet(prototxtPath, weightsPath)
-
-# load the face mask detector model from disk
-print("[INFO] loading face mask detector model...")
-maskNet = load_model(args["model"])
 
 # initialize the video stream and allow the camera sensor to warm up
 print("[INFO] starting video stream...")
-vs = VideoStream(usePiCamera=True).start()
+picam2 = Picamera2()
+picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
+picam2.start()
 time.sleep(2.0)
 
 # loop over the frames from the video stream
 while True:
 	# grab the frame from the threaded video stream and resize it
 	# to have a maximum width of 400 pixels
-	frame = vs.read()
-	frame = imutils.resize(frame, width=400)
+	im = picam2.capture_array()
+	#grey = cv2.cvtColor(im, cv2.IMREAD_GRAYSCALE)
+	gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+	print(f"{gray=}")
+	color = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+	print(f"{color=}")
+	frame = imutils.resize(color, width=400)
+	print(f"shape >>>>>>>", frame.shape)
 
 	# detect faces in the frame and determine if they are wearing a
 	# face mask or not
@@ -145,4 +158,4 @@ while True:
 
 # do a bit of cleanup
 cv2.destroyAllWindows()
-vs.stop()
+picam2.stop()
