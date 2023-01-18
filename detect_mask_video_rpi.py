@@ -10,6 +10,10 @@ from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 
+# CONSTANTS
+MASK_DETECT_MESSAGE = "Mask detected"
+MAKS_NOT_DETECT_MESSAGE = "No mask detected"
+
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-f", "--face", type=str,
@@ -38,6 +42,7 @@ def detect_and_predict_mask(frame, faceNet, maskNet):
 	# from it
 	if frame is None:
 		print("No frame received")
+		return
 
 	# grab the frame dimensions and convert it to a blob
 	(h, w) = frame.shape[:2]
@@ -78,8 +83,8 @@ def detect_and_predict_mask(frame, faceNet, maskNet):
 			# ordering, resize it to 224x224, and preprocess it
 			face = frame[startY:endY, startX:endX]
 
-			if face is not None:
-				face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
+			if face.any():
+				# face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
 				face = cv2.resize(face, (224, 224))
 				face = img_to_array(face)
 				face = preprocess_input(face)
@@ -105,7 +110,7 @@ def detect_and_predict_mask(frame, faceNet, maskNet):
 # initialize the video stream and allow the camera sensor to warm up
 print("[INFO] starting video stream...")
 picam2 = Picamera2()
-picam2.configure(picam2.create_preview_configuration(main={"format": 'BGR888', "size": (640, 480)}))
+picam2.configure(picam2.create_preview_configuration(main={"format": 'RGB888', "size": (640, 480)}))
 picam2.start()
 time.sleep(2.0)
 
@@ -130,8 +135,8 @@ while True:
 
 		# determine the class label and color we'll use to draw
 		# the bounding box and text
-		label = "Mask Detected" if mask > withoutMask else "No Mask Detected"
-		color = (0, 255, 0) if label == "Mask" else (0, 0, 255)
+		label = MASK_DETECT_MESSAGE if mask > withoutMask else MAKS_NOT_DETECT_MESSAGE
+		color = (0, 255, 0) if label == MASK_DETECT_MESSAGE else (0, 0, 255)
 
 		# include the probability in the label
 		label = "{}: {:.2f}%".format(label, max(mask, withoutMask) * 100)
