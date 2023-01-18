@@ -1,17 +1,14 @@
-# USAGE
-# python detect_mask_video.py
-
-# import the necessary packages
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
-from tensorflow.keras.preprocessing.image import img_to_array
-from tensorflow.keras.models import load_model
-import numpy as np
 import argparse
-import imutils
-import time
-import cv2
 import os
+import time
+
+import cv2
+import imutils
+import numpy as np
 from picamera2 import Picamera2
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import img_to_array
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -80,15 +77,17 @@ def detect_and_predict_mask(frame, faceNet, maskNet):
 			# extract the face ROI, convert it from BGR to RGB channel
 			# ordering, resize it to 224x224, and preprocess it
 			face = frame[startY:endY, startX:endX]
-			face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
-			face = cv2.resize(face, (224, 224))
-			face = img_to_array(face)
-			face = preprocess_input(face)
 
-			# add the face and bounding boxes to their respective
-			# lists
-			faces.append(face)
-			locs.append((startX, startY, endX, endY))
+			if face is not None:
+				face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
+				face = cv2.resize(face, (224, 224))
+				face = img_to_array(face)
+				face = preprocess_input(face)
+
+				# add the face and bounding boxes to their respective
+				# lists
+				faces.append(face)
+				locs.append((startX, startY, endX, endY))
 
 	# only make a predictions if at least one face was detected
 	if len(faces) > 0:
@@ -106,7 +105,7 @@ def detect_and_predict_mask(frame, faceNet, maskNet):
 # initialize the video stream and allow the camera sensor to warm up
 print("[INFO] starting video stream...")
 picam2 = Picamera2()
-picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
+picam2.configure(picam2.create_preview_configuration(main={"format": 'BGR888', "size": (640, 480)}))
 picam2.start()
 time.sleep(2.0)
 
@@ -114,12 +113,7 @@ time.sleep(2.0)
 while True:
 	# grab the frame from the threaded video stream and resize it
 	# to have a maximum width of 400 pixels
-	im = picam2.capture_array()
-	#grey = cv2.cvtColor(im, cv2.IMREAD_GRAYSCALE)
-	gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-	print(f"{gray=}")
-	color = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-	print(f"{color=}")
+	im = picam2.capture_array("main")
 	frame = imutils.resize(color, width=400)
 	print(f"shape >>>>>>>", frame.shape)
 
@@ -136,7 +130,7 @@ while True:
 
 		# determine the class label and color we'll use to draw
 		# the bounding box and text
-		label = "Mask" if mask > withoutMask else "No Mask"
+		label = "Mask Detected" if mask > withoutMask else "No Mask Detected"
 		color = (0, 255, 0) if label == "Mask" else (0, 0, 255)
 
 		# include the probability in the label
