@@ -37,6 +37,15 @@ faceNet = cv2.dnn.readNet(prototxtPath, weightsPath)
 print("[INFO] loading face mask detector model...")
 maskNet = load_model(args["model"])
 
+def detect_color_profile(frame):
+	# check the shape of the image
+	if frame.shape[2] == 3:
+			print("The image is in RGB format")
+	elif frame.shape[2] == 4:
+			print("The image is in BGR/RGBA format")
+	else:
+			print("The image color format is not recognizable")
+
 def detect_and_predict_mask(frame, faceNet, maskNet):
 	# grab the dimensions of the frame and then construct a blob
 	# from it
@@ -120,7 +129,6 @@ while True:
 	# to have a maximum width of 400 pixels
 	im = picam2.capture_array("main")
 	frame = imutils.resize(color, width=400)
-	print(f"shape >>>>>>>", frame.shape)
 
 	# detect faces in the frame and determine if they are wearing a
 	# face mask or not

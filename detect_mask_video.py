@@ -16,6 +16,15 @@ import time
 import cv2
 import os
 
+def detect_color_profile(frame):
+	# check the shape of the image
+	if frame.shape[2] == 3:
+			print("The image is in RGB format")
+	elif frame.shape[2] == 4:
+			print("The image is in BGR/RGBA format")
+	else:
+			print("The image color format is not recognizable")
+
 def detect_and_predict_mask(frame, faceNet, maskNet):
 	# grab the dimensions of the frame and then construct a blob
 	# from it
@@ -111,6 +120,7 @@ while True:
 	# to have a maximum width of 400 pixels
 	frame = vs.read()
 	frame = imutils.resize(frame, width=400)
+	detect_color_profile(frame)
 
 	# detect faces in the frame and determine if they are wearing a
 	# face mask or not
