@@ -10,6 +10,8 @@ from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 
+from relay import set_gpio_high
+
 # CONSTANTS
 MASK_DETECT_MESSAGE = "Mask detected"
 MAKS_NOT_DETECT_MESSAGE = "No mask detected"
@@ -128,7 +130,7 @@ while True:
 	# grab the frame from the threaded video stream and resize it
 	# to have a maximum width of 400 pixels
 	im = picam2.capture_array("main")
-	frame = imutils.resize(color, width=400)
+	frame = imutils.resize(im, width=400)
 
 	# detect faces in the frame and determine if they are wearing a
 	# face mask or not
@@ -145,6 +147,10 @@ while True:
 		# the bounding box and text
 		label = MASK_DETECT_MESSAGE if mask > withoutMask else MAKS_NOT_DETECT_MESSAGE
 		color = (0, 255, 0) if label == MASK_DETECT_MESSAGE else (0, 0, 255)
+
+		# set gpio high when mask detected
+		if mask > withoutMask:
+			set_gpio_high()
 
 		# include the probability in the label
 		label = "{}: {:.2f}%".format(label, max(mask, withoutMask) * 100)
