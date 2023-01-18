@@ -1,4 +1,4 @@
-FROM arm32v7/python:3.8
+FROM arm64v8/ubuntu:18.04
 
 RUN apt-get update && apt-get install -y \
   libhdf5-dev \
