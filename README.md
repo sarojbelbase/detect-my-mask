@@ -2,16 +2,16 @@
 
 Uilizing Tensorflow and openCV frameworks, we have created a Face Mask Detection Software Script.
 
-# Introduction
+## Introduction
 
 This is a repository that is to run a Mask Detection System on your RASPBERRY PI 4. This has been tested on a Raspberry Pi 4 (64BIT). It runs super smooth at 10fps. Upon little overclocking, the fps is 23 fps. It is very fast(<1 second for full detection), accurate( 3000+ images and 90% accuracy rate) and can be deployed in areas with heavy traffic (can recognise ten people at once).
 
-# Prerequisites
+## Prerequisites
 - Raspberry Pi 4 (64bit)
 - PiCamera2 (Only if you want to use the camera on the Pi)
 
 
-# Install prerequisites on your Raspberry Pi
+## Installation
 
 The Raspberry Pi requires that you install a few system packages before you get started. Install all these Packages-->>
 
@@ -26,7 +26,14 @@ $ sudo apt install libatlas-base-dev
 $ sudo apt install libjasper-dev
 ```
 
-# Running The Scripts
+After installing the above packages, you can install the rest of the dependencies using the following command:
+
+```bash
+$ pip3 install -r requirements.txt
+```
+
+
+## Running The Scripts
 
 For Image Detection, use:
 
@@ -40,7 +47,7 @@ For Realtime Virtual Streams, use:
 $ python3 detect_mask_video.py 
 ```
 
-## For Raspberry Pi
+### For Raspberry Pi
 
 If you plan on using the pi camera, use this:
 
@@ -48,7 +55,7 @@ If you plan on using the pi camera, use this:
 $ python3 detect_mask_video_rpi.py
 ```
 
-# Train the Model 
+## Train the Model 
 
 Train the model could take time depend upon how much data in the datasets
 
