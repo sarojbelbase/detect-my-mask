@@ -62,6 +62,6 @@ threadpoolctl==3.1.0
 typing-extensions==4.4.0
 urllib3==1.26.14
 v4l2-python3==0.3.1
-Werkzeug==2.2.2
+Werkzeug==2.2.3
 wrapt==1.14.1
 zipp==3.11.0
